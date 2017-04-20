@@ -3,6 +3,7 @@ import requests
 
 TOKEN_FILE = 'vk.token'
 
+
 class VkAPI(object):
 
     def __init__(self, key, version='5.60'):
@@ -16,17 +17,31 @@ class VkAPI(object):
         param_string += ['{0}={1}'.format(key, val) for key, val in
             {'access_token': self._key, 'v': self._version}.items()]
         url += '&'.join(param_string)
+        try:
+            resp = requests.get(url).text  # json()
+        except:
+            pass
 
-        resp = requests.get(url)
-        print('text len: {}'.format(len(resp.text)))
-        return resp.text #json()
+        return resp
 
 
 def test_get(token):
     vk = VkAPI(token)
-    res = vk.wall_get({'domain': 'sevastopolsearch', 'count': 100})
+    params = {'domain': 'sevastopolsearch', 'count': 100, 'offset': 0}
+
+    delta_offset = 100
+
     with open('test_res.txt', 'w+', encoding='utf-8') as f:
-        f.write(str(res))
+        for i in range(10):
+            try:
+                print('request {0} offset {1}'.format(params['domain'], params['offset']))
+                resp = vk.wall_get(params)
+                print('response length: {}'.format(len(resp)))
+                f.write(resp)
+            except Exception as ex:
+                print('exception: {}'.format(ex))
+            params['offset'] += delta_offset
+
 
 
 if __name__ == '__main__':
