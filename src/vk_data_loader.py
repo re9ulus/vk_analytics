@@ -58,8 +58,7 @@ def main_test():
     with open(TOKEN_FILE) as f:
         token = f.read().strip()
     vk = VkAPI(token)
-    domain = 'sevastopolsearch'
-    wall_to_file(config.RAW_DATA_FILENAME, vk.wall_get_all(domain, pages_to_get=1000))
+    wall_to_file(config.RAW_DATA_FILENAME, vk.wall_get_all(config.DOMAIN, pages_to_get=1000))
     logger.info('done')
 
 
