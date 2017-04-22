@@ -4,6 +4,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import config
 
 TOKEN_FILE = 'vk.token'
 
@@ -47,6 +48,7 @@ def wall_to_file(filename, wall):
             if data:
                 try:
                     f.write(data)
+                    f.write('\n')
                 except Exception as ex:
                     logger.exception('{0}'.format(ex))
 
@@ -56,9 +58,8 @@ def main_test():
     with open(TOKEN_FILE) as f:
         token = f.read().strip()
     vk = VkAPI(token)
-    filename = 'test_res.txt'
     domain = 'sevastopolsearch'
-    wall_to_file(filename, vk.wall_get_all(domain))
+    wall_to_file(config.RAW_DATA_FILENAME, vk.wall_get_all(domain, pages_to_get=1000))
     logger.info('done')
 
 
