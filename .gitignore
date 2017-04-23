@@ -1,6 +1,7 @@
 *.token
 *.txt
 *.csv
+*.tsv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

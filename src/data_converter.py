@@ -15,16 +15,26 @@ class Converter:
         self._file_from = file_from
         self._file_to = file_to
         self._date_format = '%Y-%m-%d %H:%M'
+        self._required_keys = ['text', 'date', 'likes', 'comments', 'reposts']
 
     def convert_item(self, item: dict):
         res = None
-        if 'post_type' not in item or 'text' not in item or 'date' not in item:
-            return None
+
+        for key in self._required_keys:
+            if key not in item:
+                return None
 
         text = self.convert_text(item['text'])
         date = self.convert_date(item['date'])
+
+        likes = item['likes']['count']
+        comments = item['comments']['count']
+        reposts = item['reposts']['count']
+
         if text and date:
-            res = {'text': text, 'date': date}  # use named tuple insted ?
+            res = {'text': text, 'date': date, 'likes': likes, 'comments': reposts,
+                'reposts': comments}  # use named tuple insted ?
+
         return res
 
     def convert_chunk(self, items: Iterable):
@@ -65,10 +75,10 @@ class Converter:
 
     def convert_raw_file(self):
         with open(self._file_to, 'w+', encoding='utf-8') as f:
+            f.write('\t'.join(self._required_keys) + '\n')
             for item in self.convert_file(self._file_from):
                 if item:
-                    f.write('{0}\t{1}\n'.format(item['text'], item['date']))
-
+                    f.write('\t'.join(str(item[key]) for key in self._required_keys) + '\n')
 
 def convert_data(raw_filename: str, res_filename: str):
     conv = Converter(raw_filename, res_filename)
