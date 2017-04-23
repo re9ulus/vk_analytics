@@ -1,3 +1,5 @@
+import json
+import time
 import requests
 
 import logging
@@ -18,7 +20,7 @@ class VkAPI(object):
         self._auth_params = ['{0}={1}'.format(key, val) for key, val in
             {'access_token': self._token, 'v': self._version}.items()]
 
-    def wall_get(self, params :dict, return_text=True):
+    def wall_get(self, params :dict, return_text=False):
         url = self._api_url + 'wall.get?'
         params = dict(params)
         params['access_token'] = self._token
@@ -43,23 +45,39 @@ class VkAPI(object):
 
 
 def wall_to_file(filename, wall):
+    empty_counter = 0
+    max_empty = 3
+    sleep_time = 0.3
     with open(filename, 'w+', encoding='utf-8') as f:
         for data in wall:
             if data:
+                if 'error' in data:
+                    logger.info('error response: {}'.format(data['error']))
+                    time.sleep(0.5)
+                    continue
+                if 'items' in data.get('response', {}) and not data['response']['items']:
+                    empty_counter += 1
+                    logger.info('Empty response {0}/{1}'.format(empty_counter, max_empty))
+                    if empty_counter >= max_empty:
+                        logger.info('All data received.')
+                        break
+                    continue
+                empty_counter = 0
                 try:
-                    f.write(data)
+                    f.write(json.dumps(data, ensure_ascii=False))
                     f.write('\n')
                 except Exception as ex:
                     logger.exception('{0}'.format(ex))
+                time.sleep(sleep_time)
 
 
 def main_test():
-    logger.info('start')
+    logger.info('Start')
     with open(TOKEN_FILE) as f:
         token = f.read().strip()
     vk = VkAPI(token)
     wall_to_file(config.RAW_DATA_FILENAME, vk.wall_get_all(config.DOMAIN, pages_to_get=1000))
-    logger.info('done')
+    logger.info('Done')
 
 
 if __name__ == '__main__':
